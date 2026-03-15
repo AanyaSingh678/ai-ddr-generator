@@ -9,7 +9,6 @@ Built as part of the UrbanRoof Applied AI Builder assignment. The system reads t
 ## Table of Contents
 
 - [Overview](#overview)
-- [Demo](#demo)
 - [DDR Report Structure](#ddr-report-structure)
 - [System Architecture](#system-architecture)
 - [Pipeline — Step by Step](#pipeline--step-by-step)
