@@ -158,6 +158,61 @@ class Observation(BaseModel):
         """Capitalizes area names consistently, e.g. 'hall ceiling' → 'Hall Ceiling'."""
         return value.strip().title()
 
+    @field_validator("source_page", mode="before")
+    @classmethod
+    def coerce_source_page(cls, value: object) -> int | None:
+        """
+        Coerces source_page to int | None before Pydantic's type check runs.
+
+        Why this is needed:
+            Local models (e.g. llama-3.1-8b-instant via Groq) sometimes return
+            descriptive strings like "Summary Table, Point 1" instead of an
+            integer page number. GPT models return null as instructed.
+            This validator handles both cases cleanly without failing validation.
+
+        Handles:
+            - None / missing          → None
+            - Valid integer (1, 27)   → int
+            - Numeric string ("27")   → int
+            - Float string ("27.0")   → int (truncated)
+            - Descriptive string      → None (logged at debug level)
+            - Any other non-numeric   → None
+        """
+        if value is None:
+            return None
+
+        # Already the correct type
+        if isinstance(value, int):
+            return value
+
+        # Float passed as number (e.g. 27.0 from JSON)
+        if isinstance(value, float):
+            return int(value)
+
+        # String — attempt numeric parse
+        if isinstance(value, str):
+            stripped = value.strip()
+            if not stripped:
+                return None
+            try:
+                # Handle "27" and "27.0"
+                return int(float(stripped))
+            except (ValueError, TypeError):
+                # Descriptive string — not a page number, discard silently
+                logger.debug(
+                    "source_page could not be parsed as integer, "
+                    "setting to None. Received: %r",
+                    value,
+                )
+                return None
+
+        # Any other unexpected type — discard safely
+        logger.debug(
+            "source_page received unexpected type %s, setting to None.",
+            type(value).__name__,
+        )
+        return None
+
     @property
     def fingerprint(self) -> str:
         """
@@ -295,11 +350,11 @@ Inspection text to analyse:
 
 class ObservationExtractor:
     """
-    Extracts structured observations from a ParsedDocument using OpenAI.
+    Extracts structured observations from a ParsedDocument using an
+    OpenAI-compatible LLM API.
 
-    The full document text is sent to the LLM in a single call.
-    The response is validated against the Pydantic schema.
-    Duplicate observations (same area + issue type) are removed.
+    Supports both OpenAI and Groq (free tier) as providers.
+    Provider is configured via config.py — no code changes needed to switch.
 
     Retry behaviour:
         Transient API errors (rate limits, server errors) are retried
@@ -314,7 +369,8 @@ class ObservationExtractor:
             print(obs)
 
     Environment variables required (.env file):
-        OPENAI_API_KEY=sk-...
+        OPENAI_API_KEY=...   Works for both OpenAI keys (sk-...) and
+                             Groq keys (gsk_...).
     """
 
     # Only these error types are worth retrying.
@@ -336,18 +392,37 @@ class ObservationExtractor:
 
     def _init_client(self) -> OpenAI:
         """
-        Initialises the OpenAI client using the API key from the environment.
+        Initialises the OpenAI-compatible client.
+
+        Reads the API key from OPENAI_API_KEY environment variable.
+        Reads the base URL from config.AI_BASE_URL — if set, requests
+        go to that provider (e.g. Groq). If None, requests go to OpenAI.
 
         Raises:
-            EnvironmentError: If OPENAI_API_KEY is not set in the .env file.
+            EnvironmentError: If OPENAI_API_KEY is not set.
         """
+        import config
+
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
             raise EnvironmentError(
                 "OPENAI_API_KEY is not set. "
-                "Add it to your .env file: OPENAI_API_KEY=sk-..."
+                "Add it to your .env file.\n"
+                "  For Groq (free):  OPENAI_API_KEY=gsk_your_groq_key_here\n"
+                "  For OpenAI:       OPENAI_API_KEY=sk-your_openai_key_here"
             )
-        return OpenAI(api_key=api_key)
+
+        # AI_BASE_URL is optional — only present in config when using
+        # a non-OpenAI provider like Groq.
+        base_url: str | None = getattr(config, "AI_BASE_URL", None)
+
+        logger.info(
+            "Initialising LLM client — model: %s, provider: %s",
+            self.MODEL,
+            base_url if base_url else "OpenAI (default)",
+        )
+
+        return OpenAI(api_key=api_key, base_url=base_url)
 
     def _prepare_text(self) -> str:
         """
@@ -374,17 +449,10 @@ class ObservationExtractor:
 
     def _call_llm(self, text: str) -> str:
         """
-        Sends the extraction prompt to OpenAI and returns the raw response string.
+        Sends the extraction prompt to the LLM and returns the raw response.
 
         Retries up to MAX_RETRIES times on transient errors using exponential
-        backoff (1s → 2s → 4s). Permanent errors raise immediately without
-        retrying to avoid wasting time and API quota.
-
-        Backoff schedule:
-            Attempt 1 fails → wait 1.0s  (1.0 × 2⁰)
-            Attempt 2 fails → wait 2.0s  (1.0 × 2¹)
-            Attempt 3 fails → wait 4.0s  (1.0 × 2²)
-            Attempt 4 fails → raise RuntimeError
+        backoff (1s → 2s → 4s). Permanent errors raise immediately.
 
         Args:
             text: The prepared document text to analyse.
@@ -393,8 +461,8 @@ class ObservationExtractor:
             Raw string response from the LLM.
 
         Raises:
-            RuntimeError: If all retry attempts are exhausted on transient errors.
-            RuntimeError: If a permanent (non-retryable) API error occurs.
+            RuntimeError: If all retry attempts are exhausted.
+            RuntimeError: If a permanent API error occurs.
         """
         prompt = EXTRACTION_PROMPT.format(text=text)
 
@@ -445,11 +513,10 @@ class ObservationExtractor:
                 delay = self.RETRY_BASE_DELAY * (2 ** (attempt - 1))
 
                 if attempt == self.MAX_RETRIES:
-                    # Final attempt exhausted — fall through to raise below
                     break
 
                 logger.warning(
-                    "Transient OpenAI error on attempt %d/%d (%s): %s. "
+                    "Transient API error on attempt %d/%d (%s): %s. "
                     "Retrying in %.1fs.",
                     attempt,
                     self.MAX_RETRIES,
@@ -461,30 +528,25 @@ class ObservationExtractor:
 
             except APIStatusError as e:
                 # Permanent error — bad API key, invalid model, malformed request.
-                # Retrying will never help. Raise immediately.
                 raise RuntimeError(
-                    f"OpenAI API error (non-retryable, HTTP {e.status_code}): {e.message}"
+                    f"API error (non-retryable, HTTP {e.status_code}): {e.message}"
                 ) from e
 
             except OpenAIError as e:
-                # Catch-all for any other unexpected OpenAI errors. Do not retry.
                 raise RuntimeError(
-                    f"Unexpected OpenAI error: {type(e).__name__}: {e}"
+                    f"Unexpected API error: {type(e).__name__}: {e}"
                 ) from e
 
         raise RuntimeError(
-            f"OpenAI API call failed after {self.MAX_RETRIES} attempts. "
+            f"API call failed after {self.MAX_RETRIES} attempts. "
             f"Last error: {type(last_exception).__name__}: {last_exception}"
         )
 
     def _parse_and_validate(self, raw_response: str) -> list[Observation]:
         """
-        Parses the LLM JSON response and validates it against the Pydantic schema.
+        Parses the LLM JSON response and validates against the Pydantic schema.
 
-        Handles the case where the LLM wraps JSON in markdown code fences
-        (e.g. ```json ... ```) despite being explicitly told not to.
-        Validation via LLMExtractionResponse ensures one malformed entry
-        does not silently corrupt the entire result.
+        Strips markdown code fences if the LLM added them despite instructions.
 
         Args:
             raw_response: Raw string returned by the LLM.
@@ -493,11 +555,10 @@ class ObservationExtractor:
             List of validated Observation objects.
 
         Raises:
-            ValueError: If the response is not valid JSON or fails schema validation.
+            ValueError: If the response is not valid JSON or fails validation.
         """
         cleaned = raw_response.strip()
 
-        # Strip markdown code fences if the LLM added them despite instructions
         if cleaned.startswith("```"):
             cleaned = cleaned.split("```")[1]
             if cleaned.startswith("json"):
@@ -527,12 +588,7 @@ class ObservationExtractor:
         observations: list[Observation],
     ) -> tuple[list[Observation], int]:
         """
-        Removes duplicate observations based on area + issue_type fingerprint.
-
-        UrbanRoof reports mention the same issue in multiple places:
-        the summary section, the detailed observation section, and
-        sometimes again in the thermal reference section. Only the
-        first occurrence of each area + issue combination is kept.
+        Removes duplicates based on area + issue_type fingerprint.
 
         Args:
             observations: Raw list potentially containing duplicates.
@@ -561,13 +617,6 @@ class ObservationExtractor:
     def extract(self) -> ObservationExtractionResult:
         """
         Runs the full observation extraction pipeline on the parsed document.
-
-        Steps:
-            1. Assemble text from non-empty pages, truncate if needed.
-            2. Call OpenAI with the extraction prompt (with retry logic).
-            3. Parse and validate the JSON response via Pydantic.
-            4. Deduplicate by area + issue type fingerprint.
-            5. Return structured ObservationExtractionResult.
 
         Returns:
             ObservationExtractionResult with validated, deduplicated observations.

@@ -35,8 +35,8 @@ OUTPUT_DIR: Path = Path("output")
 # or update these constants to match your actual filenames.
 # ---------------------------------------------------------------------------
 
-INSPECTION_PDF: Path = DATA_DIR / "inspection_report.pdf"
-THERMAL_PDF: Path = DATA_DIR / "thermal_report.pdf"
+INSPECTION_PDF: Path = DATA_DIR / "Inspection Report.pdf"
+THERMAL_PDF: Path = DATA_DIR / "Thermal Images.pdf"
 
 # ---------------------------------------------------------------------------
 # Image extraction output directories
@@ -49,10 +49,11 @@ THERMAL_IMAGES_DIR: Path = IMAGE_DIR / "thermal"
 # AI model configuration
 # ---------------------------------------------------------------------------
 
-# OpenAI model used for observation extraction.
-# gpt-4o-mini — fast, low cost, sufficient for structured extraction.
-# gpt-4o      — higher accuracy, use if extraction quality is poor.
-AI_MODEL: str = "gpt-4o-mini"
+# Model name passed to the API.
+# Groq free tier:  "llama-3.1-8b-instant"  or  "mixtral-8x7b-32768"
+# OpenAI paid:     "gpt-4o-mini"           or  "gpt-4o"
+AI_MODEL: str = "llama-3.1-8b-instant"
+AI_BASE_URL: str | None = "https://api.groq.com/openai/v1"
 
 # Maximum characters of document text sent to the LLM in one call.
 # gpt-4o-mini supports ~128k tokens. 40,000 chars ≈ 10,000 tokens.

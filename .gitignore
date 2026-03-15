@@ -1,0 +1,26 @@
+# Virtual environment
+venv/
+
+# Environment variables — never commit your API key
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Extracted images (regenerated each run)
+images/
+
+# Generated reports (regenerated each run)
+output/
+
+# Temporary data files
+data/
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+desktop.ini

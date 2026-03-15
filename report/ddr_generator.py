@@ -708,220 +708,400 @@ class DDRGenerator:
     # ------------------------------------------------------------------
 
     def _get_styles(self) -> str:
-        """Returns the complete CSS for the report."""
+        """Returns the complete CSS for the report, styled to match the UrbanRoof DDR reference."""
         return """
+        @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            font-size: 14px;
-            color: #212121;
-            background: #f5f5f5;
-            padding: 0;
-        }
-        .report-wrapper { max-width: 960px; margin: 0 auto; background: #fff; }
-
-        /* Header */
-        .report-header {
-            background: #1a1a1a;
-            color: #fff;
-            padding: 36px 40px 28px;
-            border-bottom: 4px solid #f9a825;
-        }
-        .report-title {
-            font-size: 28px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #f9a825;
-            text-decoration: underline;
-        }
-        .report-meta { margin-top: 16px; display: flex; gap: 40px; flex-wrap: wrap; }
-        .meta-item { font-size: 13px; color: #bdbdbd; }
-        .meta-item strong { color: #f9a825; display: block; font-size: 11px;
-                            text-transform: uppercase; letter-spacing: 0.5px; }
-
-        /* Sections */
-        .section { padding: 32px 40px; border-bottom: 1px solid #e0e0e0; }
-        .section:last-child { border-bottom: none; }
-        .section-title {
-            font-size: 18px;
-            font-weight: 700;
+            font-family: 'Open Sans', Arial, sans-serif;
+            font-size: 13px;
             color: #1a1a1a;
-            margin-bottom: 20px;
+            background: #e8e8e8;
+        }
+
+        .report-wrapper {
+            max-width: 960px;
+            margin: 0 auto;
+            background: #ffffff;
+            box-shadow: 0 0 20px rgba(0,0,0,0.15);
+        }
+
+        /* ── Cover page ──────────────────────────────── */
+        .cover-page {
+            background: linear-gradient(160deg, #3a3a3a 55%, #c8a020 55%);
+            min-height: 320px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+        }
+        .cover-top-bar {
+            background: #1a1a1a;
+            padding: 20px 40px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .cover-brand {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+        .cover-brand span { color: #c8a020; }
+        .cover-title-block {
+            padding: 36px 40px 20px;
+            position: relative;
+            z-index: 2;
+        }
+        .cover-main-title {
+            font-size: 32px;
+            font-weight: 700;
+            color: #ffffff;
+            text-decoration: underline;
+            text-decoration-color: #4caf50;
+            text-underline-offset: 6px;
+            line-height: 1.2;
+            margin-bottom: 4px;
+        }
+        .cover-subtitle {
+            font-size: 14px;
+            color: #dddddd;
+            font-weight: 400;
+        }
+        .cover-meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            padding: 24px 40px 32px;
+            background: rgba(0,0,0,0.15);
+            margin-top: 8px;
+        }
+        .cover-meta-item { padding: 8px 0; }
+        .cover-meta-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #c8a020;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 3px;
+        }
+        .cover-meta-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #ffffff;
+            line-height: 1.4;
+        }
+        .cover-stripe {
+            height: 6px;
+            background: linear-gradient(90deg, #4caf50 50%, #c8a020 50%);
+        }
+
+        /* ── Page header (on every section page) ─────── */
+        .page-header {
+            background: #1a1a1a;
+            padding: 10px 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .page-header-brand {
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .page-header-brand span { color: #c8a020; }
+        .page-header-info {
+            font-size: 11px;
+            color: #aaaaaa;
+            border-left: 2px solid #c8a020;
+            padding-left: 12px;
+            line-height: 1.4;
+        }
+        .page-header-stripe {
+            height: 3px;
+            background: linear-gradient(90deg, #4caf50 50%, #c8a020 50%);
+            margin-bottom: 32px;
+        }
+
+        /* ── Sections ────────────────────────────────── */
+        .section { padding: 0 40px 32px; }
+        .section + .section { padding-top: 8px; }
+
+        .section-title {
+            font-size: 17px;
+            font-weight: 700;
+            color: #c8a020;
+            margin-bottom: 6px;
             padding-bottom: 8px;
-            border-bottom: 2px solid #f9a825;
+            border-bottom: 2px solid #c8a020;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .section-number {
-            background: #f9a825;
-            color: #1a1a1a;
-            font-size: 12px;
+            background: #1a1a1a;
+            color: #c8a020;
+            font-size: 11px;
             font-weight: 700;
-            padding: 2px 8px;
+            padding: 3px 9px;
             border-radius: 3px;
+            border: 1px solid #c8a020;
+        }
+        .section-divider {
+            height: 1px;
+            background: #e0e0e0;
+            margin: 24px 0 20px;
         }
 
-        /* Issue tags */
-        .issue-tag-list { list-style: none; display: flex; flex-wrap: wrap;
-                          gap: 8px; margin: 12px 0; }
+        /* ── Summary stats row ───────────────────────── */
+        .stats-row {
+            display: flex;
+            gap: 0;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 16px 0 20px;
+        }
+        .stat-cell {
+            flex: 1;
+            text-align: center;
+            padding: 14px 12px;
+            border-right: 1px solid #dddddd;
+            background: #fafafa;
+        }
+        .stat-cell:last-child { border-right: none; }
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #c8a020;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 10px;
+            color: #888888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        /* ── Issue type pills ────────────────────────── */
+        .issue-tag-list { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
         .issue-tag {
-            background: #e3f2fd;
-            color: #1565c0;
-            border: 1px solid #90caf9;
-            padding: 4px 12px;
+            background: #fff8e1;
+            color: #7a5c00;
+            border: 1px solid #c8a020;
+            padding: 3px 10px;
             border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        /* ── Summary table ───────────────────────────── */
+        .summary-table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+        .summary-table th, .summary-table td {
+            padding: 8px 14px;
+            border: 1px solid #dddddd;
+            text-align: left;
             font-size: 12px;
+        }
+        .summary-table th {
+            background: #1a1a1a;
+            color: #c8a020;
             font-weight: 600;
         }
+        .summary-table tr:nth-child(even) td { background: #f9f9f9; }
 
-        /* Summary table */
-        .summary-table { border-collapse: collapse; margin-top: 12px; }
-        .summary-table th, .summary-table td {
-            padding: 8px 16px;
-            border: 1px solid #e0e0e0;
-            text-align: left;
-            font-size: 13px;
-        }
-        .summary-table th { background: #f5f5f5; font-weight: 600; }
-
-        /* Severity badge */
+        /* ── Severity badge ──────────────────────────── */
         .severity-badge {
             display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
+            padding: 2px 9px;
+            border-radius: 10px;
+            font-size: 10px;
             font-weight: 700;
             letter-spacing: 0.3px;
         }
 
-        /* Observation cards */
-        .observations-grid { display: flex; flex-direction: column; gap: 20px; }
+        /* ── Observation cards ───────────────────────── */
+        .observations-grid { display: flex; flex-direction: column; gap: 16px; }
         .observation-card {
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
+            border: 1px solid #dddddd;
+            border-radius: 4px;
             overflow: hidden;
         }
         .card-header {
             background: #1a1a1a;
             color: #fff;
-            padding: 12px 20px;
+            padding: 10px 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            border-left: 4px solid #c8a020;
         }
-        .area-name { font-size: 15px; font-weight: 700; color: #f9a825; }
+        .area-name { font-size: 14px; font-weight: 700; color: #c8a020; }
         .field-table { width: 100%; border-collapse: collapse; }
         .field-table tr { border-bottom: 1px solid #f0f0f0; }
         .field-table tr:last-child { border-bottom: none; }
         .field-label {
-            width: 200px;
-            padding: 8px 16px;
+            width: 180px;
+            padding: 8px 14px;
             background: #fafafa;
-            font-weight: 600;
-            font-size: 12px;
-            color: #616161;
+            font-weight: 700;
+            font-size: 11px;
+            color: #888888;
             text-transform: uppercase;
             letter-spacing: 0.3px;
             vertical-align: top;
+            border-right: 1px solid #f0f0f0;
         }
         .field-table td:not(.field-label) {
-            padding: 8px 16px;
-            font-size: 13px;
-            color: #424242;
+            padding: 8px 14px;
+            font-size: 12px;
+            color: #333333;
+            line-height: 1.55;
         }
 
-        /* Images */
-        .image-section { background: #fafafa; padding: 12px 16px;
-                          border-top: 1px solid #e0e0e0; }
-        .image-label { font-size: 11px; font-weight: 700; color: #9e9e9e;
-                       text-transform: uppercase; letter-spacing: 0.5px;
-                       margin-bottom: 8px; }
-        .image-row { display: flex; flex-wrap: wrap; gap: 12px; }
-        .observation-image { max-width: 280px; max-height: 200px;
-                              border-radius: 4px; border: 1px solid #e0e0e0;
-                              object-fit: cover; }
-        .no-image { font-size: 12px; color: #9e9e9e; font-style: italic; }
-
-        /* Root cause & actions */
-        .cause-list, .action-list { display: flex; flex-direction: column; gap: 12px; }
-        .cause-block, .action-block {
-            background: #f9f9f9;
-            border: 1px solid #e0e0e0;
-            border-left: 4px solid #f9a825;
-            border-radius: 4px;
+        /* ── Images ──────────────────────────────────── */
+        .image-section {
+            background: #f7f7f7;
             padding: 12px 16px;
+            border-top: 1px solid #eeeeee;
         }
-        .cause-unknown, .action-unknown { border-left-color: #9e9e9e; }
-        .cause-text, .action-text { font-size: 13px; font-weight: 600;
-                                     color: #212121; margin-bottom: 6px; }
-        .cause-areas, .action-areas { font-size: 12px; color: #616161; }
+        .image-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #aaaaaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+        .image-row { display: flex; flex-wrap: wrap; gap: 10px; }
+        .observation-image {
+            max-width: 260px;
+            max-height: 180px;
+            border-radius: 3px;
+            border: 1px solid #dddddd;
+            object-fit: cover;
+        }
+        .no-image { font-size: 11px; color: #aaaaaa; font-style: italic; }
+
+        /* ── Root cause / action blocks ──────────────── */
+        .cause-list, .action-list { display: flex; flex-direction: column; gap: 10px; }
+        .cause-block, .action-block {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-left: 4px solid #c8a020;
+            border-radius: 3px;
+            padding: 10px 14px;
+        }
+        .cause-unknown, .action-unknown { border-left-color: #cccccc; }
+        .cause-text, .action-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 5px;
+        }
+        .cause-areas, .action-areas { font-size: 11px; color: #777777; }
         .area-tag {
             display: inline-block;
             background: #eeeeee;
-            color: #424242;
-            padding: 1px 8px;
-            border-radius: 10px;
-            font-size: 11px;
+            color: #555555;
+            padding: 1px 7px;
+            border-radius: 9px;
+            font-size: 10px;
             margin: 2px;
         }
 
-        /* Severity table */
+        /* ── Severity table ──────────────────────────── */
         .severity-table { width: 100%; border-collapse: collapse; }
         .severity-table th, .severity-table td {
-            padding: 10px 14px;
+            padding: 9px 12px;
             border: 1px solid #e0e0e0;
-            font-size: 13px;
+            font-size: 12px;
             vertical-align: top;
         }
-        .severity-table th { background: #1a1a1a; color: #f9a825;
-                              font-weight: 600; text-align: left; }
-        .severity-table tr:nth-child(even) { background: #fafafa; }
-        .reasoning-cell { color: #616161; font-size: 12px; }
+        .severity-table th {
+            background: #1a1a1a;
+            color: #c8a020;
+            font-weight: 700;
+            text-align: left;
+        }
+        .severity-table tr:nth-child(even) td { background: #f9f9f9; }
+        .reasoning-cell { color: #666666; font-size: 11px; font-style: italic; }
 
-        /* Conflicts */
-        .conflict-list { display: flex; flex-direction: column; gap: 16px; }
-        .conflict-block { padding: 14px 18px; border-radius: 4px; }
-        .conflict-header { display: flex; align-items: center; gap: 12px;
-                           margin-bottom: 10px; flex-wrap: wrap; }
-        .conflict-area { font-size: 15px; font-weight: 700; color: #212121; }
+        /* ── Conflicts ───────────────────────────────── */
+        .conflict-list { display: flex; flex-direction: column; gap: 14px; }
+        .conflict-block { padding: 12px 16px; border-radius: 4px; }
+        .conflict-header {
+            display: flex; align-items: center; gap: 10px;
+            margin-bottom: 8px; flex-wrap: wrap;
+        }
+        .conflict-area { font-size: 14px; font-weight: 700; color: #1a1a1a; }
         .conflict-type-badge, .conflict-severity {
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            font-size: 10px; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.4px;
         }
         .conflict-table { width: 100%; border-collapse: collapse; }
-        .conflict-table td { padding: 6px 12px; border: 1px solid rgba(0,0,0,0.08);
-                              font-size: 13px; }
-
-        /* Missing info */
-        .missing-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        .missing-table th, .missing-table td {
-            padding: 8px 14px;
-            border: 1px solid #e0e0e0;
-            font-size: 13px;
-        }
-        .missing-table th { background: #f5f5f5; font-weight: 600; }
-        .missing-cell { color: #9e9e9e; font-style: italic; }
-
-        /* Utilities */
-        .not-available { color: #9e9e9e; font-style: italic; }
-        h3 { font-size: 15px; font-weight: 600; color: #424242;
-              margin: 16px 0 8px; }
-        p { line-height: 1.6; color: #424242; }
-
-        /* Footer */
-        .report-footer {
-            background: #1a1a1a;
-            color: #9e9e9e;
-            text-align: center;
-            padding: 20px;
+        .conflict-table td {
+            padding: 5px 10px;
+            border: 1px solid rgba(0,0,0,0.08);
             font-size: 12px;
         }
-        .report-footer strong { color: #f9a825; }
+
+        /* ── Missing info ────────────────────────────── */
+        .missing-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .missing-table th, .missing-table td {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            font-size: 12px;
+        }
+        .missing-table th {
+            background: #1a1a1a;
+            color: #c8a020;
+            font-weight: 700;
+        }
+        .missing-table tr:nth-child(even) td { background: #f9f9f9; }
+        .missing-cell { color: #aaaaaa; font-style: italic; }
+
+        /* ── Utilities ───────────────────────────────── */
+        .not-available { color: #aaaaaa; font-style: italic; }
+        h3 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #555555;
+            margin: 14px 0 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        p { line-height: 1.6; color: #444444; font-size: 12px; }
+
+        /* ── Footer ──────────────────────────────────── */
+        .report-footer {
+            background: #1a1a1a;
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .footer-brand {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .footer-brand span { color: #c8a020; }
+        .footer-meta { font-size: 11px; color: #888888; }
+        .footer-stripe {
+            height: 3px;
+            background: linear-gradient(90deg, #4caf50 50%, #c8a020 50%);
+        }
 
         @media print {
             body { background: #fff; }
-            .report-wrapper { max-width: 100%; }
+            .report-wrapper { max-width: 100%; box-shadow: none; }
+            .cover-page { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .card-header, .page-header, .report-footer { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
         """
 
@@ -952,29 +1132,48 @@ class DDRGenerator:
         """
 
     def _build_header(self) -> str:
-        """Builds the report header with property and inspection details."""
+        """Builds the cover page and repeating page header matching the UrbanRoof DDR reference."""
+        now = datetime.now().strftime("%B %d, %Y")
         return f"""
-        <header class="report-header">
-            <div class="report-title">Detailed Diagnostic Report</div>
-            <div class="report-meta">
-                <div class="meta-item">
-                    <strong>Property Address</strong>
-                    {_esc(self.property_address)}
-                </div>
-                <div class="meta-item">
-                    <strong>Inspected By</strong>
-                    {_esc(self.inspected_by)}
-                </div>
-                <div class="meta-item">
-                    <strong>Inspection Date</strong>
-                    {_esc(self.inspection_date)}
-                </div>
-                <div class="meta-item">
-                    <strong>Report Generated</strong>
-                    {datetime.now().strftime("%B %d, %Y at %H:%M")}
+        <div class="cover-page">
+            <div class="cover-top-bar">
+                <div class="cover-brand">Urban<span>Roof</span></div>
+                <div style="font-size:11px;color:#aaaaaa;letter-spacing:0.5px;">
+                    DETAILED DIAGNOSTIC REPORT
                 </div>
             </div>
-        </header>
+            <div class="cover-title-block">
+                <div class="cover-main-title">Detailed Diagnostic Report</div>
+                <div class="cover-subtitle">AI-Assisted Property Inspection Analysis</div>
+            </div>
+            <div class="cover-meta-grid">
+                <div class="cover-meta-item">
+                    <div class="cover-meta-label">Inspected &amp; Prepared By</div>
+                    <div class="cover-meta-value">{_esc(self.inspected_by)}</div>
+                </div>
+                <div class="cover-meta-item">
+                    <div class="cover-meta-label">Prepared For</div>
+                    <div class="cover-meta-value">{_esc(self.property_address)}</div>
+                </div>
+                <div class="cover-meta-item">
+                    <div class="cover-meta-label">Inspection Date</div>
+                    <div class="cover-meta-value">{_esc(self.inspection_date)}</div>
+                </div>
+                <div class="cover-meta-item">
+                    <div class="cover-meta-label">Report Generated</div>
+                    <div class="cover-meta-value">{now}</div>
+                </div>
+            </div>
+        </div>
+        <div class="cover-stripe"></div>
+        <div class="page-header">
+            <div class="page-header-brand">Urban<span>Roof</span></div>
+            <div class="page-header-info">
+                Detailed Diagnostic Report<br>
+                {_esc(self.property_address)}
+            </div>
+        </div>
+        <div class="page-header-stripe"></div>
         """
 
     def _build_html(self) -> str:
@@ -1013,9 +1212,12 @@ class DDRGenerator:
     <div class="report-wrapper">
         {self._build_header()}
         <main>{sections}</main>
+        <div class="footer-stripe"></div>
         <footer class="report-footer">
-            <p>Generated by <strong>UrbanRoof DDR System</strong> &nbsp;|&nbsp;
-               {datetime.now().strftime("%Y")} UrbanRoof Private Limited</p>
+            <div class="footer-brand">Urban<span>Roof</span> Private Limited</div>
+            <div class="footer-meta">
+                www.urbanroof.in &nbsp;|&nbsp; Generated {datetime.now().strftime("%Y")}
+            </div>
         </footer>
     </div>
 </body>
